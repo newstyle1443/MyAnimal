@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import DjangoUnicodeDecodeError, force_str, force_bytes
 from django.db.models.query_utils import Q
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.core.mail import EmailMessage
 
 from rest_framework.authtoken.models import Token
@@ -83,7 +83,8 @@ class VerifyEmailView(APIView):
             # 이메일 인증 완료 처리
             user.is_active = True
             user.save()
-            return Response({"message": "이메일 인증이 완료되었습니다."}, status=status.HTTP_200_OK)
+            # return Response({"message": "이메일 인증이 완료되었습니다."}, status=status.HTTP_200_OK)
+            return redirect ('http://127.0.0.1:5500/login.html')
         else:
             return Response({"message": "잘못된 링크입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -156,8 +157,8 @@ class FollowView(APIView):
         me = request.user
         if me.is_authenticated:
             # 채연수정 : 현재 로그인한 유저와 팔로우 대상이 다를경우 (내가 아닌 경우에만 팔로우)
+            # 준영 수정: Response가 잘못되어 수정하였습니다.
             if you != request.user:
-
                 if me in you.followers.all():
                     you.followers.remove(me)
                     return Response("unfollow했습니다.", status=status.HTTP_200_OK)
@@ -165,9 +166,9 @@ class FollowView(APIView):
                     you.followers.add(me)
                     return Response("follow했습니다.", status=status.HTTP_200_OK)
             else:
-                return Response("로그인이 필요합니다.", status=status.HTTP_403_FORBIDDEN)
+                return Response("자신을 팔로우 할 수 없습니다.", status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response("", status=status.HTTP_400_BAD_REQUEST)
+            return Response("로그인이 필요합니다.", status=status.HTTP_403_FORBIDDEN)
 
 # 로그인 한 유저만 팔로우 할 수 있게 수정함.
 
